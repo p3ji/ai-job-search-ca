@@ -27,7 +27,6 @@ per-file diff commands.
   scoped to the built-in `GITHUB_TOKEN` so it can never write outside its own fork. SETUP.md 8
   introduces both tools side by side. Offline tests cover patch-id matching, relevance filtering, the
   won't-port list, and the workflow guard. Thanks @anjolok1997.
-
 - **`security_guards.py` now holds `.claude/settings.json` hooks to an allowlist** - the
   guard read `permissions.allow` and nothing else, so a `hooks` block in the same file
   passed silently. A hook is strictly more dangerous than a pre-approved permission: a
@@ -42,6 +41,10 @@ per-file diff commands.
   cannot return early and skip it, and unrecognised hook layouts fail closed rather than
   being skipped. Eight new `HookGuardTests` cases; 14 of the suite's 26 tests fail against
   the unpatched guard.
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3efc52e (feat(security): hold .claude/settings.json hooks to a reviewed allowlist (#313))
 ### Changed
 
 - **CI discovers portal CLIs instead of hardcoding them** (#310). The `cli-checks` matrix
