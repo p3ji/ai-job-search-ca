@@ -47,6 +47,26 @@ per-file diff commands.
 >>>>>>> 3efc52e (feat(security): hold .claude/settings.json hooks to a reviewed allowlist (#313))
 ### Changed
 
+- **`/add-portal` now specifies how a generated skill handles an API token** (#304) - the command
+  could already scaffold a skill for a portal reachable only through a paid fetching
+  service, but said nothing about the credential such a skill needs. It now checks for that
+  case during reconnaissance and raises the per-call cost with the user *before*
+  scaffolding. That check is explicitly subordinate to the `robots.txt`/terms decision
+  in Step 2.4 - a paid fetching service never launders a refusal, and the credential
+  path exists only for portals whose `robots.txt` permits access but whose bot
+  protection blocks ordinary fetches. The portal-skill contract requires the token to come from a
+  `<SERVICE>_API_TOKEN` environment variable (never a CLI flag, never a fixture) and to
+  fail with `MISSING_CREDENTIALS` when unset; and such a skill's `SKILL.md` must carry a
+  Setup section naming the service, the variable, and the billing. Spec only - no shipped
+  portal needs a credential, so no existing skill changes. Thanks @Haseeb-1698.
+
+- **`/add-portal`'s fetching contract line now states the honest-UA posture** - it read
+  "browser User-Agent", predating the repo-wide shift to honest self-identification
+  (#283, #277 and the portal-CLI fixes that followed). A generated skill now defaults to
+  `Mozilla/5.0 (compatible; <portal>-cli/1.0)` - the convention every shipped portal CLI
+  follows - and escalation to browser headers goes through the robots.txt gate in
+  `09-web-research.md`, never the CLI's default.
+
 - **CI discovers portal CLIs instead of hardcoding them** (#310). The `cli-checks` matrix
   is now emitted by a `discover-clis` job that finds every `.agents/skills/*/cli/package.json`,
   so a portal skill added with `/add-portal` gets its `typecheck` and `test` scripts run by CI
@@ -127,19 +147,6 @@ per-file diff commands.
   change.
 
 ### Changed
-
-- **`/add-portal` now specifies how a generated skill handles an API token** - the command
-  could already scaffold a skill for a portal reachable only through a paid fetching
-  service, but said nothing about the credential such a skill needs. It now checks for that
-  case during reconnaissance and raises the per-call cost with the user *before*
-  scaffolding. That check is explicitly subordinate to the `robots.txt`/terms decision
-  in Step 2.4 - a paid fetching service never launders a refusal, and the credential
-  path exists only for portals whose `robots.txt` permits access but whose bot
-  protection blocks ordinary fetches. The portal-skill contract requires the token to come from a
-  `<SERVICE>_API_TOKEN` environment variable (never a CLI flag, never a fixture) and to
-  fail with `MISSING_CREDENTIALS` when unset; and such a skill's `SKILL.md` must carry a
-  Setup section naming the service, the variable, and the billing. Spec only - no shipped
-  portal needs a credential, so no existing skill changes.
 
 - **The four Danish demo portals now ship disabled** (#288) - `jobindex-search`,
   `jobbank-search`, `jobdanmark-search`, and `jobnet-search` default to `enabled: false`,
