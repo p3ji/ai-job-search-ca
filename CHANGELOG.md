@@ -13,6 +13,35 @@ per-file diff commands.
 
 ## [Unreleased]
 
+### Added
+
+- **Commit-level upstream triage for forks** (#305). A new `tools/upstream_triage.py` walks the
+  commits a fork is behind upstream and sorts them into "worth reviewing" vs "probably skip":
+  cherry-picks already applied drop off on their own (matched by `git patch-id`, so ported work
+  needs no bookkeeping), commits that only touch files the fork removed are set aside, and SHAs in
+  a flat `.github/upstream-wontport.txt` stop resurfacing. It's the commit-history companion to
+  `check_upstream_updates.py`'s version stamps - the two cross-reference each other in their output.
+  Report-only by design: it prints ready-to-run `git cherry-pick` lines but never merges, pushes, or
+  opens a PR, because on a fork "applies cleanly" isn't "correct". A `.github/workflows/upstream-watch.yml`
+  runs it weekly into a rolling issue, guarded to no-op on the upstream template (pinned by a test) and
+  scoped to the built-in `GITHUB_TOKEN` so it can never write outside its own fork. SETUP.md 8
+  introduces both tools side by side. Offline tests cover patch-id matching, relevance filtering, the
+  won't-port list, and the workflow guard. Thanks @anjolok1997.
+
+- **`security_guards.py` now holds `.claude/settings.json` hooks to an allowlist** - the
+  guard read `permissions.allow` and nothing else, so a `hooks` block in the same file
+  passed silently. A hook is strictly more dangerous than a pre-approved permission: a
+  permission pre-approves something Claude *may* choose to do, while a hook runs
+  unconditionally when its event fires, with no prompt and no model decision in between.
+  This is not hypothetical - it is the vector the Shai-Hulud worm used in its August 2026
+  wave, planting a `SessionStart` hook in `.claude/settings.json` that executed on session
+  start ([JFrog research](https://research.jfrog.com/post/shai-hulud-is-back-august/)).
+  For a template thousands of people are invited to fork, that is the riskiest key in the
+  file the guard already parses. `ALLOWED_HOOKS` ships empty (the template has no hooks),
+  the check runs *before* the permissions shape guards so a malformed permissions block
+  cannot return early and skip it, and unrecognised hook layouts fail closed rather than
+  being skipped. Eight new `HookGuardTests` cases; 14 of the suite's 26 tests fail against
+  the unpatched guard.
 ### Changed
 
 - **CI discovers portal CLIs instead of hardcoding them** (#310). The `cli-checks` matrix
