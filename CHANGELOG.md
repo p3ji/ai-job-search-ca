@@ -13,6 +13,28 @@ per-file diff commands.
 
 ## [Unreleased]
 
+### Changed
+
+- **CONTRIBUTING: invited PRs are reserved for the invitee** - when a maintainer comment
+  explicitly invites a named contributor to implement an issue they diagnosed or designed,
+  the implementation is theirs for a stated window (default seven days, longer on request);
+  a duplicate PR filed inside that window closes in the invitee's favor regardless of
+  arrival order. Prospective from 2026-08-14. Sits alongside the existing credit norm.
+
+### Fixed
+
+- **`convert_salary_excel.py` no longer misreads whole-thousands cells from a Danish-locale
+  export** - a cell like `60.000` (thousands separator, no decimal comma) was handed to
+  `float()` and silently written as `60.0`, a 1000x-wrong salary in `salary_data.json` that
+  then rendered with a meaningless `vs baseline` percentage in `/apply`. The comma-side
+  mirror (`1,234`) was already guarded as ambiguous and skipped; the dot side had no guard,
+  and tests only pinned the both-separators form (`1.234,5`). `\d+\.\d{3}` is now rejected
+  the same way, so the shared never-guess policy applies to both separators and the rows in
+  between (e.g. `60.000,50`, `108,5`) keep parsing exactly as before. Pinned by
+  `tests/test_convert_salary_excel.py`.
+
+## [1.5.0] - 2026-08-12
+
 ### Added
 
 - **Commit-level upstream triage for forks** (#305). A new `tools/upstream_triage.py` walks the
@@ -27,6 +49,7 @@ per-file diff commands.
   scoped to the built-in `GITHUB_TOKEN` so it can never write outside its own fork. SETUP.md 8
   introduces both tools side by side. Offline tests cover patch-id matching, relevance filtering, the
   won't-port list, and the workflow guard. Thanks @anjolok1997.
+
 - **`security_guards.py` now holds `.claude/settings.json` hooks to an allowlist** - the
   guard read `permissions.allow` and nothing else, so a `hooks` block in the same file
   passed silently. A hook is strictly more dangerous than a pre-approved permission: a
@@ -41,10 +64,7 @@ per-file diff commands.
   cannot return early and skip it, and unrecognised hook layouts fail closed rather than
   being skipped. Eight new `HookGuardTests` cases; 14 of the suite's 26 tests fail against
   the unpatched guard.
-<<<<<<< HEAD
-=======
 
->>>>>>> 3efc52e (feat(security): hold .claude/settings.json hooks to a reviewed allowlist (#313))
 ### Changed
 
 - **`/add-portal` now specifies how a generated skill handles an API token** (#304) - the command
@@ -519,7 +539,8 @@ At this baseline the framework provides:
 - **Cross-runtime support** - a root `AGENTS.md` pointer so Codex and Antigravity can
   discover the portable portal skills, with Claude Code as the reference runtime.
 
-[Unreleased]: https://github.com/MadsLorentzen/ai-job-search/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/MadsLorentzen/ai-job-search/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/MadsLorentzen/ai-job-search/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/MadsLorentzen/ai-job-search/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/MadsLorentzen/ai-job-search/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/MadsLorentzen/ai-job-search/compare/v1.1.0...v1.2.0
