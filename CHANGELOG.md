@@ -23,6 +23,16 @@ per-file diff commands.
 
 ### Fixed
 
+- **The `/html-report` dashboard now reads and renders the tracker's `deadline`** (follow-up to
+  #319). The tracker gained a fourteenth `deadline` column and every other consumer (`/outcome`,
+  `/upskill`, `/notion-sync`) was updated to know it, but the dashboard's Step 1 field
+  enumeration and Step 3 table columns still listed the original thirteen - the one surface
+  where the column could not be seen at all, so a `drafted` application's clock stayed invisible
+  in the report that reviews the pipeline end to end. The Step 1 enumeration now matches the
+  canonical 14-column header and the applications table can show a `Deadline` column, subject to
+  the existing empty-column rule. Pinned by `tests/test_html_report_command.py` so a future
+  column addition cannot silently vanish from the dashboard again.
+
 - **Application deadlines are written down at every moment the framework provably holds them**
   (#319). `/scrape` fetched the deadline and rendered it in a table, `/rank` turned it into the 🔥
   urgency marker and the expiry check, and nothing stored it - so the marker fired exactly once,
@@ -41,6 +51,16 @@ per-file diff commands.
   `job-application-assistant/SKILL.md` bumps `framework_version` 1.3.2 → 1.3.3. Pinned by
   `tests/test_rank_command.py`, `tests/test_apply_records_application.py`, and
   `tests/test_upskill_skill.py`.
+
+  The sweep's edges are stated rather than left to the reader: an entry with no stored `deadline`
+  is left alone and never inferred from another field (the majority case, since most entries
+  predate the column), `--all` re-scores any status including `expired` so a swept job is
+  recoverable, and `/rank` Step 4's idempotency rule now names the sweep as its deliberate
+  exception instead of contradicting it. Step 5 reports how many entries were swept and how many
+  were retired, so an automated status change is never silent. `/outcome` Step 1 states that the
+  header append is the one edit it may make outside a matched row, so it does not read as a
+  violation of Step 4's own "never restructure the CSV". `/notion-sync` forbids reconciling two
+  disagreeing deadlines by taking the earlier or later of them.
 
 - **`convert_salary_excel.py` no longer misreads whole-thousands cells from a Danish-locale
   export** - a cell like `60.000` (thousands separator, no decimal comma) was handed to
