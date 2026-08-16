@@ -57,6 +57,8 @@ Combine each query with your location terms. Canadian location strings that work
 
 Write **each category in every language from your Languages table** (see Language scope above).
 
+**Organize by function, not job title.** The same underlying work carries different titles across companies and markets (a "Data Scientist" role at one employer may be posted as "Insights Analyst" or "Data Consultant" at another). Name each priority category after the function it covers, and list several plausible job titles as query variants within that category rather than betting an entire priority tier on one exact title string.
+
 ### Priority 1: [YOUR_PRIMARY_ROLE_TYPE]
 
 Your strongest and most desired direction.
