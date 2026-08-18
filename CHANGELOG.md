@@ -109,6 +109,7 @@ per-file diff commands.
   every CV open in fullscreen presentation mode. `05-cv-templates.md`'s preamble copy stays
   in lockstep (framework_version 1.4.0 -> 1.4.1). Verified on moderncv 2.5.1: exit 0,
   exactly 2 pages, rendering unchanged.
+
 ## [1.5.0] - 2026-08-12
 
 ### Added
