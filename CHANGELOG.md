@@ -15,6 +15,13 @@ per-file diff commands.
 
 ### Added
 
+- **`freehire-search` gains `--no-description` for cheap discovery passes** - a default
+  search hydrates full description bodies (~73% of the payload, ~20k tokens per query)
+  while `/scrape` is told to pre-filter by title before reading bodies. The new flag
+  drops the bodies (a live 10-result search shrinks from ~58k to ~10k chars) while
+  keeping every other field; hydration stays the default. The API currently returns
+  bodies regardless of `include_description=false`, so the lean guarantee is enforced
+  client-side. Pinned in `tests/commands.test.ts`.
 - **Fixture coverage for linkedin's date/location and jobindex's `parseSearchPage`** -
   linkedin's search-card fixture carried no `<time>` or location element, so deleting
   the `date` extraction (a `/scrape` contract field on a default-ON portal) left every
