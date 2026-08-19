@@ -120,6 +120,37 @@ per-file diff commands.
 
 ### Fixed
 
+- **`/scrape` gains a recency fallback for portals with no recency flag** - Step 1b.3
+  told every portal to scope to 14 days "using the portal's supported recency flag", but
+  jobdanmark has none, leaving the instruction unsatisfiable there: the agent either
+  silently skipped the scoping or invented a flag (which the CLIs now reject). Every
+  portal emits a `date` field, so the instruction now says to filter client-side after
+  the call, and stops presenting `--order` (a sort) as interchangeable with a filter.
+  Pinned in `tests/test_scrape_provenance.py`.
+- **`/html-report`'s funnel counts stages from history; the rejection rate stops
+  counting non-rejections** - the funnel was computed from current status, which is a
+  state, not a history: an application that interviewed and was then rejected never
+  counted as reaching Interview, so a finished search rendered as though nobody ever
+  interviewed. The funnel (Step 2 and chart 4) now derives stage-reached from current
+  status plus the `outcome.md` stage checkboxes Step 1.2 already merges. And the
+  rejection rate no longer counts `offer_declined` (a success) or `withdrawn`
+  (candidate-initiated) as rejections, nor unresolved Interview/Offer rows in its
+  denominator. Pinned by two new tests in `tests/test_html_report_command.py`.
+- **`jobdanmark-search detail`'s HTML fallback emits the same shapes as its JSON-LD
+  branch** - a posting without JSON-LD returned `datePosted` as the page's raw
+  `DD-MM-YYYY` text, `validThrough` as free text (including the literal `"Løbende"`,
+  which would flow into stored data as a deadline), and a hardcoded `null`
+  `addressLocality`. The fallback now converts overview dates to `YYYY-MM-DD`, maps
+  `Løbende` to `null` (jobbank's precedent for the equivalent), and derives the locality
+  from the workplace address with the same postcode extraction search uses. Pinned in
+  `tests/detail-parsing.test.ts`.
+- **`jobnet-search detail` no longer leaks the `1900-01-01` undisclosed-deadline
+  sentinel** - `search` maps the API's sentinel to `null` (with a test pinning it), but
+  `detail` dumped the raw response, so a posting whose deadline is simply not disclosed
+  contributed a deadline 126 years in the past to stored data, and `/rank`'s expiry
+  sweep would retire the job instantly. All three output formats now flow through a
+  `prepareDetail` normalization that maps the sentinel to `null`. Pinned in
+  `tests/detail-formatting.test.ts`.
 - **CI's placeholder guard now watches the CV's actual personal-data lines** - the
   sentinel for `cv/main_example.tex` was `[YOUR_NAME]`, whose only occurrences are a
   header comment and the hyperref `pdftitle`; `/setup`'s documented edit replaces the
