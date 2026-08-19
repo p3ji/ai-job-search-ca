@@ -132,6 +132,25 @@ class RankCommandSpec(unittest.TestCase):
             "stale claim: the gate result IS tracked by /scrape and /rank now",
         )
 
+    def test_sweep_parses_stored_deadlines_defensively(self):
+        """Rule 6's expiry sweep mutates status automatically from stored
+        deadline values, and portals have shipped non-ISO shapes into
+        seen_jobs.json ("ASAP" from jobindex, DD.MM.YYYY from jobbank,
+        free text from jobdanmark's detail fallback). /outcome carries a
+        defensive date-parse rule for mere display; the command that
+        silently changes state needs one at least as much."""
+        text = COMMAND.read_text(encoding="utf-8")
+        self.assertIn(
+            "Parse stored deadlines defensively",
+            text,
+            "rule 6's sweep must state the defensive-parse rule",
+        )
+        self.assertRegex(
+            text,
+            r"not a `YYYY-MM-DD` date[^.]*treated exactly like an absent one",
+            "a non-ISO stored deadline must be handled as absent, not compared or guessed at",
+        )
+
     def test_step2_schema_includes_language_gate_fields(self):
         sections = _sections(COMMAND.read_text(encoding="utf-8"))
         step2 = sections.get("Step 2: Batch-Fetch and Score", "")

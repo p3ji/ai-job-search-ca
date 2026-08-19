@@ -56,6 +56,13 @@ per-file diff commands.
 
 ### Fixed
 
+- **`/rank`'s expiry sweep parses stored deadlines defensively** - the sweep changes
+  status automatically from a date comparison against values on disk, but portals have
+  shipped non-ISO shapes into `seen_jobs.json` (`"ASAP"`, `DD.MM.YYYY`, free text), and
+  `/rank` had no rule for them while the display-only `/outcome` already did. A stored
+  deadline that is not `YYYY-MM-DD` is now treated exactly like an absent one wherever a
+  stored deadline is compared (urgency and sweep), and reported once with its portal.
+  Pinned by `tests/test_rank_command.py`.
 - **Language Gate preamble no longer claims the gate is untracked** (`framework_version`
   1.2.3 -> 1.2.4 in `04-job-evaluation.md`) - the paragraph still said the result "is not
   a field `/scrape` or `/rank` track", written before the gate was wired into both
