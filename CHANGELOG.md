@@ -65,6 +65,26 @@ per-file diff commands.
 
 ### Changed
 
+- **`linkedin-search detail` drops the `applyUrl` field** - the extraction regex
+  assumed `class=` before `href=` and never matched LinkedIn's real markup (`null` on
+  every live posting since the markup ordering differs), and fixing the regex would only
+  capture the job-view URL, a duplicate of the record's own `url`. The field and the
+  SKILL.md "apply link" claim are removed; a test pins the removal.
+- **`jobdanmark-search` search output drops presentation-only keys** - `coverImage`,
+  `companyLogo`, `companyLogoSvgMarkup`, `overlayColor`, and `silhouetteLogo` were ~40%
+  of a live payload (a 30-result response shrinks from ~30k to ~20k chars), fed into
+  agent context on every `/scrape` query, and unusable by an agent. The #340
+  compatibility duplicates (`companyName`, `publishedDate`, `applicationDeadline`) and
+  `slug` stay. Pinned in `tests/search-normalization.test.ts`.
+- **BREAKING (jobbank forks): `jobbank-search` search output emits `deadline` as
+  `YYYY-MM-DD`** - the feed's `DD.MM.YYYY` parenthetical was passed through raw,
+  contradicting the `/scrape` contract, the other portals, and the same CLI's own
+  `detail` command (which already emits ISO for the same job). `01.09.2026` is also
+  ambiguous to a date parser (1 Sep vs 9 Jan). The known shape is now converted;
+  "løbende" still maps to `null`, and an unrecognized shape passes through for `/rank`'s
+  defensive handling. Anything parsing the old `DD.MM.YYYY` output must update - though
+  the README's own search example already showed the ISO form. Pinned in
+  `tests/rss-parsing.test.ts` and `tests/search-normalization.test.ts`.
 - **Job matching reframed around function, not title** (`framework_version` 1.2.2 -> 1.2.3 in
   `04-job-evaluation.md`) - title-lookalike matching throws away career capital that doesn't
   fit one job-title box (e.g. a background spanning research leadership, platform ownership,
@@ -82,6 +102,13 @@ per-file diff commands.
 
 ### Fixed
 
+- **`jobindex-search` maps ASAP postings' deadline to `null`** - the portal's
+  `apply_deadline_asap` flag was emitted as the literal string `"ASAP"` on roughly half
+  of live results, contradicting the CLI's own README ("date string; null if not
+  listed") and the `/scrape` schema, and breaking every consumer that does date
+  arithmetic (`/rank`'s urgency and expiry sweep, `/outcome`'s deadline check,
+  `/notion-sync`'s typed date column). ASAP means "no stated deadline", which the
+  contract already represents as `null`. Pinned in `tests/search-page.test.ts`.
 - **`/gmail-sync` no longer restricts its search to the Inbox** - the query used
   `in:inbox` to "skip sent/drafts", but that operator also excludes every archived
   message, and self-defeatingly the mail matched by the very job-search label Step 3.1

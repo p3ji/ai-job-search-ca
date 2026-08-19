@@ -86,6 +86,19 @@ describe("decodeHtmlEntities (via parseJobCards)", () => {
   });
 });
 
+describe("parseJobDetail dropped fields", () => {
+  test("emits no applyUrl field", () => {
+    // The extraction regex assumed class-before-href and never matched
+    // LinkedIn's real markup (null on every live posting), and a fixed
+    // version would only capture the job-view URL - a duplicate of `url`.
+    // The field is dropped rather than fixed (review finding F19,
+    // 2026-08-19). This test pins the removal so it does not quietly
+    // return as a broken or redundant field.
+    const job = parseJobDetail("<html></html>", "1");
+    expect("applyUrl" in job).toBe(false);
+  });
+});
+
 describe("decodeHtmlEntities (via parseJobDetail)", () => {
   test("decodes hex entities inside the job title", () => {
     const html = `<h1 class="topcard__title">Se&#xF1;or Engineer</h1>`;
