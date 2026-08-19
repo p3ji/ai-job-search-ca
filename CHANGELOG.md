@@ -15,6 +15,14 @@ per-file diff commands.
 
 ### Added
 
+- **Cross-portal `/scrape` contract pin** (#344) - a repo-level test deriving the Step 2
+  search-output field list (`title`, `company`, `location`, `date`, `url`) from
+  `job-scraper/SKILL.md`'s own contract sentence and checking every installed portal
+  CLI's search source for it, so a portal that quietly stops emitting a contract field
+  (the failure class jobnet and jobdanmark actually shipped before #339/#340) fails CI
+  with a clean diff instead of degrading every `/scrape` run silently. The pin survived
+  the #347 output-shape changes unmodified - evidence the derived-from-spec design holds.
+  Contributed by @oscarbol09, the invited follow-up from #342's review.
 - **`freehire-search` gains `--no-description` for cheap discovery passes** - a default
   search hydrates full description bodies (~73% of the payload, ~20k tokens per query)
   while `/scrape` is told to pre-filter by title before reading bodies. The new flag
@@ -127,6 +135,35 @@ per-file diff commands.
 
 ### Fixed
 
+- **Onboarding warns about public forks at the point of decision** (#345) - the quick
+  start walked a new user into `gh repo fork` (forks of public repos are always public)
+  and two steps later had `/setup` write personal data into tracked files, with the only
+  complete warning sitting in SETUP.md section 8 - a section about pulling updates that a
+  first-time user has no reason to open. A real user hit exactly this. The warning now
+  sits adjacent to both fork commands (README step 1, SETUP.md section 2), and `/setup`
+  checks the origin's visibility **before** writing anything: a public-fork origin gets a
+  confirm-first warning instead of a note after every file is already on disk. Reported
+  by @basilevs with a complete reproduction and fix analysis. Pinned by the new
+  `tests/test_onboarding_privacy.py`.
+- **`jobindex-search detail` rewritten against jobindex's current markup** - every
+  selector the old parser used is gone from live pages, so on 4 of 5 live postings it
+  returned CSS-comment text as the deadline (`"K \t\t... */"`), an external ATS URL as
+  its own `id` and `url`, null company/location/date, and a 160-char teaser as the
+  description - exit 0 every time. The new parser handles both live shapes (the
+  jobindex-native `jd-*` layout and the external-ATS passthrough), always keeps the
+  jobindex id and `jobannonce` URL, requires a real date next to the deadline label and
+  scans only visible markup (killing the CSS-comment capture), converts Danish long
+  dates to ISO, and reports `company: null` honestly on passthrough pages instead of
+  the ATS brand. Verified live on 5/5 postings (full descriptions of 5.5-9k chars, 4/5
+  ISO deadlines and locations). Fixture tests for both shapes, including the
+  CSS-comment trap, in the new `tests/detail-parsing.test.ts`.
+- **`/scrape` gains a recency fallback for portals with no recency flag** - Step 1b.3
+  told every portal to scope to 14 days "using the portal's supported recency flag", but
+  jobdanmark has none, leaving the instruction unsatisfiable there: the agent either
+  silently skipped the scoping or invented a flag (which the CLIs now reject). Every
+  portal emits a `date` field, so the instruction now says to filter client-side after
+  the call, and stops presenting `--order` (a sort) as interchangeable with a filter.
+  Pinned in `tests/test_scrape_provenance.py`.
 - **`/html-report`'s funnel counts stages from history; the rejection rate stops
   counting non-rejections** - the funnel was computed from current status, which is a
   state, not a history: an application that interviewed and was then rejected never
