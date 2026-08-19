@@ -15,6 +15,13 @@ per-file diff commands.
 
 ### Added
 
+- **Discriminating tests for `robots_check`'s tie-break and browser-UA fallback** - the
+  existing tie test put Disallow first, the one ordering that cannot detect deletion of
+  the tie-break clause; and the browser-readback recovery that `09-web-research.md`
+  claims is covered had no test at all. Three new tests in `tests/test_robots_check.py`
+  pin the Allow-first tie, the 403-to-honest/200-to-browser recovery, and that a
+  browser-fetched policy is still obeyed strictly. Each was mutation-verified: deleting
+  the tie-break clause or the UA fallback now fails the suite.
 - **LaTeX special-character guidance for CVs** (`framework_version` 1.4.1 -> 1.4.2 in
   `05-cv-templates.md`, 1.0.1 -> 1.0.2 in `06-cover-letter-templates.md`) - `05` gains a
   "LaTeX Special Characters" section and `06`'s existing one is completed beyond `\_`/`\&`.
