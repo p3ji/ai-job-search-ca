@@ -56,6 +56,14 @@ per-file diff commands.
 
 ### Fixed
 
+- **`/upskill` no longer divides by a blank `fit_rating`** - `/outcome` creates tracker
+  rows for applications made outside the workflow with no fit evaluation, so their
+  `fit_rating` is blank, and Step 3.3's `(100 - fit_rating) / 100` had no rule for that.
+  The naive blank-as-0 reading yields weight 1.0 (the maximum), letting the one job the
+  framework knows nothing about dominate the skill-gap heatmap. A blank or non-numeric
+  `fit_rating` now falls back to a matched ranked entry's `rank_score`, else the row is
+  skipped, counted, and reported once - mirroring the skill's own missing-`gaps`
+  handling. Pinned by `tests/test_upskill_skill.py`.
 - **`/rank`'s expiry sweep parses stored deadlines defensively** - the sweep changes
   status automatically from a date comparison against values on disk, but portals have
   shipped non-ISO shapes into `seen_jobs.json` (`"ASAP"`, `DD.MM.YYYY`, free text), and
