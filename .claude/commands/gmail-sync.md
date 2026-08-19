@@ -46,9 +46,9 @@ Lookback window: `since <date>` argument if given, else `state.last_sync` if set
    - A quoted-name OR-group of the open applications' company names, e.g. `{"Acme Corp" "BigCo"}`
    - A sender-domain OR-group of common ATS platforms: `{from:greenhouse.io from:lever.co from:myworkday.com from:ashbyhq.com from:smartrecruiters.com from:icims.com from:bamboohr.com}`
    - The lookback bound, e.g. `newer_than:30d` or `after:2026/06/15`
-   - `in:inbox` (skip sent/drafts - status signals come from what employers send you, not what you sent them)
+   - `-in:sent -in:drafts` (status signals come from what employers send you, not what you sent them; the negative operators keep **archived** mail and label-filtered mail in scope - restricting to the Inbox instead would silently drop both, including exactly the mail matched by the job-search label from step 1, since the standard filter that applies such a label also archives it)
 
-Example: `newer_than:30d in:inbox ({"Acme Corp" "BigCo"} OR {from:greenhouse.io from:lever.co from:myworkday.com from:ashbyhq.com})`
+Example: `newer_than:30d -in:sent -in:drafts ({"Acme Corp" "BigCo"} OR {from:greenhouse.io from:lever.co from:myworkday.com from:ashbyhq.com})`
 
 4. Call `search_threads` with `view: THREAD_VIEW_MINIMAL`, `pageSize: 50`, paginating via `pageToken` until exhausted or results are clearly outside the relevant window.
 

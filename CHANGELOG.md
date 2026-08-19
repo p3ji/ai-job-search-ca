@@ -56,6 +56,13 @@ per-file diff commands.
 
 ### Fixed
 
+- **`/gmail-sync` no longer restricts its search to the Inbox** - the query used
+  `in:inbox` to "skip sent/drafts", but that operator also excludes every archived
+  message, and self-defeatingly the mail matched by the very job-search label Step 3.1
+  hunts for (the standard filter that applies such a label also archives). The query now
+  uses `-in:sent -in:drafts`, which matches the stated intent exactly. The failure mode
+  was silent under-detection: a missed rejection or interview invite read as "no
+  updates". Pinned by the new `tests/test_gmail_sync_command.py`.
 - **`/upskill` no longer divides by a blank `fit_rating`** - `/outcome` creates tracker
   rows for applications made outside the workflow with no fit evaluation, so their
   `fit_rating` is blank, and Step 3.3's `(100 - fit_rating) / 100` had no rule for that.
