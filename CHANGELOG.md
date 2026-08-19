@@ -15,6 +15,16 @@ per-file diff commands.
 
 ### Added
 
+- **LaTeX special-character guidance for CVs** (`framework_version` 1.4.1 -> 1.4.2 in
+  `05-cv-templates.md`, 1.0.1 -> 1.0.2 in `06-cover-letter-templates.md`) - `05` gains a
+  "LaTeX Special Characters" section and `06`'s existing one is completed beyond `\_`/`\&`.
+  The load-bearing case is an unescaped `%` in a quantified achievement bullet: it starts a
+  LaTeX comment, so "cut latency by 40% and saved DKK 2M" compiles with zero errors and
+  renders as "cut latency by 40" - silent content loss in the deliverable, on exactly the
+  content the guidance steers users to write. `&` in employer names (Bang & Olufsen, H&M)
+  fails loudly at compile time and is now documented alongside. Pinned by
+  `tests/test_latex_guidance.py`.
+
 - **`seen_jobs.json` entries record which mechanism produced them** - a new additive `source`
   field (`cli` for Step 1b portal-CLI output, `websearch` for the Step 1c fallback), a Step 1c
   rule tagging fallback results at collection time, and a `fallback (websearch):` line in the
@@ -45,6 +55,46 @@ per-file diff commands.
   arrival order. Prospective from 2026-08-14. Sits alongside the existing credit norm.
 
 ### Fixed
+
+- **Example-CV bullets no longer swallowed as LaTeX optional labels** - every placeholder
+  bullet written as `\item [text]` (11 in `cv/main_example.tex`, 3 in
+  `06-cover-letter-templates.md`'s taught template) let LaTeX parse the bracketed text as
+  `\item`'s optional argument: the shipped example CV rendered all Professional Experience
+  bullets clipped off the left page edge, with the word "Achievement" appearing 9 times in
+  the source and 0 times in the PDF text layer - a clean compile, green CI. Bullets are now
+  braced (`\item {[text]}`), the cover-letter guide teaches the braced form, and CI's stock
+  PDF assertions additionally require `Achievement` to survive `pdftotext`. Pinned by
+  `tests/test_latex_guidance.py`.
+- **Documented ATS extraction commands pin `-enc UTF-8`** - `pdftotext -layout` without an
+  encoding flag emits Latin-1 on Xpdf builds, so every non-ASCII character in a correct CV
+  (Rambøll, Ingeniør, København) read back as a replacement character and failed the
+  parseability checklist, steering the agent to "fix" a healthy document. The commands in
+  `apply.md`, `05-cv-templates.md`, and `CLAUDE.md`'s verification checklist now carry
+  `-enc UTF-8`, which is deterministic on both poppler and Xpdf. Pinned by
+  `tests/test_latex_guidance.py`.
+
+- **`jobbank-search` search output now carries the `/scrape` contract's `date` field** (#342) -
+  the CLI emitted `posted` (full ISO 8601) but not the cross-portal `date` key, the one Step 2
+  contract field it was missing. Search results now additively emit `date` as `YYYY-MM-DD`
+  derived from `posted` (kept unchanged), `null` when the feed item carries no `pubDate`. The
+  result mapping is extracted into an exported `normalizeSearchItem` so the derivation is
+  pinned by tests. Completes the portal-contract series with #339 (jobnet) and #340
+  (jobdanmark).
+
+- **`jobdanmark-search` search output now carries the `/scrape` contract fields** - the CLI
+  exposed the API-native schema (`companyName`, `publishedDate` in `DD-MM-YYYY`, …) with no
+  `company`, `location`, `date` or `deadline`, so every `/scrape` run flagged jobdanmark as
+  degraded and the `seen_jobs.json` dedupe lost the company. Search results now additively emit
+  `company`, `location` (city after the postal code in `companyAddress`), and `date`/`deadline`
+  in the `YYYY-MM-DD` convention, with null-safe handling of a missing address.
+
+- **`jobnet-search` search output now carries the `/scrape` contract fields** - the CLI emitted
+  the raw Jobnet API schema (`jobAdId`, `hiringOrgName`, `publicationDate`, …) with no
+  `company`, `location`, `date` or `url`, so every `/scrape` run flagged jobnet as degraded
+  forever (CI stayed green), the `seen_jobs.json` dedupe fell back to company+title, and `/rank`
+  lost the posting link. Search results now additively emit `company`, `location`, `date`,
+  `deadline` and `url` (`https://jobnet.dk/find-job/{jobAdId}` - the `/job/` route is
+  login-walled); the API's `1900-01-01` "deadline not disclosed" sentinel maps to `null`.
 
 - **A `/` in a company or role name no longer nests the application archive one level too deep**
   (jakob1379/ai-job-search#22). `Novo Nordisk A/S` derived
@@ -113,9 +163,9 @@ per-file diff commands.
   set its name styling through `\firstnamestyle`/`\lastnamestyle`, which moderncv 2.3.1
   (Debian/Ubuntu apt) does not have, so a fresh fork could not compile its own example CV
   on that toolchain. Name styling now routes through `\namefont`, the hook every name-style
-  macro shares: a true no-op on moderncv 2.4+ (where head iii typesets via
-  `\firstnamestyle`/`\lastnamestyle` and never calls `\namefont`'s replacements), and the
-  only option on 2.3.1 where those macros do not exist. Two review follow-ups landed in the
+  macro shares: live on every version (on 2.4+, head iii's `\firstnamestyle`/`\lastnamestyle`
+  both route through `\namefont`, so the override is what sets the 34pt name there too), and
+  the only option on 2.3.1 where those macros do not exist. Two review follow-ups landed in the
   same change: the `\hypersetup` comment now names the real clash mechanism
   (`\RequirePackage[unicode]{hyperref}` on < 2.4; `\PassOptionsToPackage`, introduced in
   2.4.0, is what removes the clash), and the metadata block sets `pdfpagemode=UseNone` - a
