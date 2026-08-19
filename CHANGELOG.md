@@ -120,6 +120,16 @@ per-file diff commands.
 
 ### Fixed
 
+- **CI's placeholder guard now watches the CV's actual personal-data lines** - the
+  sentinel for `cv/main_example.tex` was `[YOUR_NAME]`, whose only occurrences are a
+  header comment and the hyperref `pdftitle`; `/setup`'s documented edit replaces the
+  `\name{}`/`\address{}`/`\phone{}`/`\email{}` data and touches neither, so a fully
+  personalized CV with a real name, address, phone and email passed the check (proven
+  empirically in the review). The guard now asserts sentinels inside the `\name{}` and
+  `\email{}` lines, and `01-candidate-profile.md`'s sentinel moves from the `<!-- SETUP`
+  header comment onto the `[YOUR_EMAIL]` Identity field for the same reason. The new
+  `tests/test_placeholder_integrity.py` simulates the `/setup` edit and requires the
+  guard to fire on it.
 - **`jobindex-search` maps ASAP postings' deadline to `null`** - the portal's
   `apply_deadline_asap` flag was emitted as the literal string `"ASAP"` on roughly half
   of live results, contradicting the CLI's own README ("date string; null if not
