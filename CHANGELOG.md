@@ -65,6 +65,16 @@ per-file diff commands.
 
 ### Changed
 
+- **`/rank` persists its location verdict as `location_verdict`** - the bare `location`
+  key meant two incompatible things in `seen_jobs.json`: a place (scraper search output,
+  driving the commute filter) and a PASS/FAIL/FLAG verdict (`/rank` Step 4), so ranking
+  could overwrite "Aarhus, Denmark" with "PASS" and no reader could tell which meaning a
+  stored value carried. Legacy entries are read compatibly (a PASS/FAIL/FLAG string in
+  `location` counts as the verdict when `location_verdict` is absent) and migrated on
+  re-write. The `seen_jobs` schema note in `job-scraper/SKILL.md` now also enumerates
+  `location_verdict`/`language_gate`/`language_note`, so its "do not drop any of these
+  fields" instruction finally covers the fields `/rank` calls as important as the score.
+  Pinned by two new tests in `tests/test_rank_command.py`.
 - **`linkedin-search detail` drops the `applyUrl` field** - the extraction regex
   assumed `class=` before `href=` and never matched LinkedIn's real markup (`null` on
   every live posting since the markup ordering differs), and fixing the regex would only
