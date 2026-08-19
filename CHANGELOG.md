@@ -15,6 +15,12 @@ per-file diff commands.
 
 ### Added
 
+- **Tests for `lint_skills.py`'s skill and command checks** - only `check_settings()`
+  had coverage; the linter's main job (frontmatter keys, `allowed-tools` targets
+  existing, the `# /<name>` command title rule) was unasserted, so deleting the
+  missing-allowed-tools error survived the whole suite. Four new cases in
+  `tests/test_lint_skills.py`, with the fixture's yaml stub upgraded to parse the real
+  frontmatter. Mutation-verified.
 - **Discriminating tests for `robots_check`'s tie-break and browser-UA fallback** - the
   existing tie test put Disallow first, the one ordering that cannot detect deletion of
   the tie-break clause; and the browser-readback recovery that `09-web-research.md`
