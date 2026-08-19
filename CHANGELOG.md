@@ -120,13 +120,6 @@ per-file diff commands.
 
 ### Fixed
 
-- **`/scrape` gains a recency fallback for portals with no recency flag** - Step 1b.3
-  told every portal to scope to 14 days "using the portal's supported recency flag", but
-  jobdanmark has none, leaving the instruction unsatisfiable there: the agent either
-  silently skipped the scoping or invented a flag (which the CLIs now reject). Every
-  portal emits a `date` field, so the instruction now says to filter client-side after
-  the call, and stops presenting `--order` (a sort) as interchangeable with a filter.
-  Pinned in `tests/test_scrape_provenance.py`.
 - **`/html-report`'s funnel counts stages from history; the rejection rate stops
   counting non-rejections** - the funnel was computed from current status, which is a
   state, not a history: an application that interviewed and was then rejected never
