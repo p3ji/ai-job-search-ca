@@ -15,6 +15,26 @@ per-file diff commands.
 
 ### Added
 
+- **Company-research cache for `/apply` and `/interview`** - `/apply` Step 3's reviewer
+  agent and `/interview` Step 2 each independently execute the Company Research
+  Checklist (`04-job-evaluation.md`) for the same company, so applying and later
+  prepping for an interview on the same application researches the company twice from
+  scratch. A new `company_research/<normalized-name>.json` cache (30-day TTL, documented
+  in `04-job-evaluation.md` alongside the checklist it mirrors) lets either consumer
+  reuse a recent result instead of repeating the search/fetch work. This does not
+  change how a claim gets verified: cached research is a lead, exactly like
+  reviewer-agent research already is under `03-writing-style.md` rule 5 - only the
+  discovery step is cached, never the final verification before a claim ships in a
+  cover letter or prep pack. `company_research/*.json` added to `.gitignore` and
+  `security_guards.py`'s `REQUIRED_IGNORE_RULES` (a plain rooted pattern, not `**/`
+  -prefixed - the cache is referenced from commands, not a skill, so it resolves
+  against the repo root normally). Pinned by the new
+  `tests/test_company_research_cache.py`.
+
+## [1.6.0] - 2026-08-19
+
+### Added
+
 - **Cross-portal `/scrape` contract pin** (#344) - a repo-level test deriving the Step 2
   search-output field list (`title`, `company`, `location`, `date`, `url`) from
   `job-scraper/SKILL.md`'s own contract sentence and checking every installed portal
@@ -883,7 +903,8 @@ At this baseline the framework provides:
 - **Cross-runtime support** - a root `AGENTS.md` pointer so Codex and Antigravity can
   discover the portable portal skills, with Claude Code as the reference runtime.
 
-[Unreleased]: https://github.com/MadsLorentzen/ai-job-search/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/MadsLorentzen/ai-job-search/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/MadsLorentzen/ai-job-search/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/MadsLorentzen/ai-job-search/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/MadsLorentzen/ai-job-search/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/MadsLorentzen/ai-job-search/compare/v1.2.0...v1.3.0
