@@ -15,6 +15,23 @@ per-file diff commands.
 
 ### Fixed
 
+- **`/scrape` now persists each posting's publication date** (#390) - Step 2's contract guarantees a
+  `date` on every portal CLI's search output (CI enforces it in `test_scrape_contract.py`) and
+  Step 1b uses that date to scope a run to the last 14 days, but Step 4's `seen_jobs.json` schema
+  stored no posting date at all: `first_seen` is when the scraper saw an entry, not when the
+  employer posted it. The freshness window was therefore unauditable the moment a run ended, and
+  `/rank` - which reads the stored entry, not the run - had no age signal to weigh. A
+  `freehire-search` posting dated 2024-05-13 was scraped 27 months later and ranked Strong Fit at
+  position 1 of 133; the scoring note recorded that the listing "may be long stale" in prose
+  nothing reads, and an `/apply` run drafted a tailored CV and cover letter against it. The schema
+  gains `posted_date` (`null` when the portal returned no date, never inferred or backfilled).
+  Pinned by three new cases in `test_scrape_contract.py`, each verified to fail on the unfixed
+  spec. Reported and diagnosed from a real run by @sandunwijerathne.
+
+## [1.7.0] - 2026-08-29
+
+### Fixed
+
 - **Fork clones no longer point `gh issue create` at the upstream public tracker
   undetected** (#389) - `gh repo fork --clone`, the exact command SETUP.md's fork step
   recommends, sets the *upstream* repo as gh's default repository, and gh uses the
@@ -1000,7 +1017,8 @@ At this baseline the framework provides:
 - **Cross-runtime support** - a root `AGENTS.md` pointer so Codex and Antigravity can
   discover the portable portal skills, with Claude Code as the reference runtime.
 
-[Unreleased]: https://github.com/MadsLorentzen/ai-job-search/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/MadsLorentzen/ai-job-search/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/MadsLorentzen/ai-job-search/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/MadsLorentzen/ai-job-search/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/MadsLorentzen/ai-job-search/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/MadsLorentzen/ai-job-search/compare/v1.3.0...v1.4.0
