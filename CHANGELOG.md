@@ -13,6 +13,32 @@ per-file diff commands.
 
 ## [Unreleased]
 
+### Added
+
+- **`/rank` now consumes the `posted_date` #391 persists** (#390, the deferred second
+  half) - Step 3 gains a staleness flag: a posting whose stored `posted_date` is more
+  than 30 days old at rank time carries a visible ⚠ marker with its age spelled out
+  alongside the score ("⚠ posted 2024-05-13, 27 months ago"), the same FLAG treatment as
+  location and language - in the ranking, for the user to judge, never an exclusion (the
+  #390 posting was 27 months old *and still live*; age is a signal, not a veto, and a
+  future stored `deadline` outranks it). Costs no fetch: age is re-derived each run from
+  the stored value and never persisted. Boundary rules carried over verbatim from the
+  schema and rule 6: no `posted_date` or `null` means no flag and no guess (never
+  inferred from `first_seen`), and unparseable values are treated as absent and reported
+  once with their portal. Pinned by four new cases in `test_rank_command.py`, each
+  verified to fail against the rule-less spec.
+
+### Security
+
+- **`settings.json` no longer pre-approves `bun run` on arbitrary files** (#396) - the
+  template's permission allowlist granted `Bash(bun run:*)`, which auto-approved
+  `bun run <any file on disk>` in every fork. It is now one path-scoped entry per shipped
+  portal CLI, matching what each portal SKILL.md already declares. `/scrape` is unaffected
+  for all portals, including ones added by `/add-portal` - the job-scraper skill's own
+  `allowed-tools` carries the path-scoped wildcard that covers them during the workflow.
+  Running a portal CLI ad hoc outside a skill now prompts once, which is the intended
+  behavior for anything not on the reviewed list. Thanks @vkotaru.
+
 ### Fixed
 
 - **`linkedin-search detail` accepts LinkedIn job URLs with trailing slashes** (#411) -
@@ -49,6 +75,19 @@ per-file diff commands.
   gains `posted_date` (`null` when the portal returned no date, never inferred or backfilled).
   Pinned by three new cases in `test_scrape_contract.py`, each verified to fail on the unfixed
   spec. Reported and diagnosed from a real run by @sandunwijerathne.
+
+- **`salary_lookup.py` no longer crashes on a `null` `metadata` or `categories`** - `--validate`
+  treats an explicit `"metadata": null` / `"categories": null` the same as an omitted key (the
+  shape checks are "...must be an object *when provided*" and skip `None`), but the renderer read
+  both through `dict.get(key, {})`, which only substitutes the default for an *absent* key - a
+  present-but-null value passed straight through. `format_entry` then hit `None.get("index_label",
+  ...)` (`AttributeError`) or, via the numeric-field fallback, `None[key] = value` (`TypeError`),
+  so a hand-maintained `salary_data.json` using `null` for "no value here" died with an uncaught
+  traceback right after printing `Found 1 match(es)`. `format_entry` now coerces both to `{}` up
+  front, so `null`, absent, and `{}` behave identically. Pinned by four cases in
+  `test_salary_lookup.py` - two unit calls into `format_entry` and two end-to-end (`main()
+  --validate` blesses the file, then the lookup path renders it), one per null shape, all verified
+  to fail on the unfixed renderer.
 
 ## [1.7.0] - 2026-08-29
 
