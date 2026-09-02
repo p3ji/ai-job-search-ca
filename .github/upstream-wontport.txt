@@ -7,6 +7,26 @@
 # port drop off automatically once cherry-picked (patch-id match), so they
 # never need an entry here. Likewise commits that only touch files your fork
 # removed are auto-skipped - you don't need to list those either.
-#
-# This ships empty on the template. Populate it in your own fork, e.g.:
-#   cffacfd   # Danish demo portals - my fork removed them on purpose
+
+# Danish-only portals (the Canadian fork ships with Danish portals disabled)
+04186b9  # fix(jobnet-search): emit /scrape contract fields (Danish jobnet portal)
+17bc698  # fix(jobdanmark-search): emit /scrape contract fields (Danish jobdanmark portal)
+df7919c  # fix(jobbank-search): emit date key derived from posted (Danish jobbank.dk portal)
+7aba0b4  # fix(jobdanmark-search): accept comma after postcode (Danish jobdanmark portal)
+b067928  # fix(jobindex-search): map ASAP deadlines to null (Danish jobindex portal)
+4896596  # fix(jobbank-search): emit deadline as YYYY-MM-DD (Danish jobbank.dk portal)
+56f679e  # fix(jobdanmark-search): drop presentation-only keys (Danish jobdanmark portal)
+bcba687  # fix(jobnet-search): map 1900-01-01 sentinel to null (Danish jobnet portal)
+dab2150  # fix(jobdanmark-search): normalize detail HTML fallback (Danish jobdanmark portal)
+c85640e  # fix(jobindex-search): rewrite detail parser against page shapes (Danish jobindex portal)
+
+# Danish salary data / formatting (not applicable to Canadian market)
+621ce5a  # fix(convert-salary-excel): reject ambiguous dot thousands separators (Danish krone)
+1c19f6c  # fix(salary-tools): number locale by last separator (Danish salary)
+7d00ec7  # fix(salary): stop dropping dotted A.M.B.A. suffix (Danish corporate entities)
+9833a5d  # fix(salary): treat null metadata as absent (Danish salary lookup)
+
+# Upstream release chores / tags (the Canadian fork tracks its own releases)
+45d55a7  # chore(release): cut v1.5.0
+ab91c60  # chore(release): cut v1.6.0
+93fb0e6  # chore(release): cut v1.7.0
