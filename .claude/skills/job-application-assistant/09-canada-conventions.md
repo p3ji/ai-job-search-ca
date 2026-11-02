@@ -1,3 +1,7 @@
+---
+framework_version: 1.0.0
+---
+
 # Canadian Application Conventions
 
 Market rules for applying in Canada. Apply these on top of `05-cv-templates.md` and

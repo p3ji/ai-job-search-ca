@@ -62,6 +62,9 @@ jobs:
             python tools/upstream_triage.py --remote upstream --branch master
           } > report.md
           cat report.md
+          if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+            cat report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Open or update the rolling issue
         env:
@@ -74,12 +77,20 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           title="Upstream sync watch"
-          existing=$(gh issue list --state open --search "in:title \"$title\"" \
-            --json number,title --jq ".[] | select(.title==\"$title\") | .number" | head -n1)
-          if [ -n "$existing" ]; then
-            gh issue edit "$existing" --body-file report.md
-            echo "Updated issue #$existing"
+          # Check if issues are enabled; gracefully handle forks where Issues is turned off
+          if ! existing=$(gh issue list --state open --search "in:title \"$title\"" \
+            --json number,title --jq ".[] | select(.title==\"$title\") | .number" 2>&1); then
+            echo "::warning::Could not query GitHub Issues: $existing. If Issues are disabled on this fork, enable them under Settings -> General -> Features. The full triage report has been recorded in the Step Summary."
+            exit 0
+          fi
+          existing_number=$(echo "$existing" | head -n1)
+          if [ -n "$existing_number" ]; then
+            gh issue edit "$existing_number" --body-file report.md
+            echo "Updated issue #$existing_number"
           else
-            gh issue create --title "$title" --body-file report.md
-            echo "Created a new rolling issue"
+            if ! gh issue create --title "$title" --body-file report.md; then
+              echo "::warning::Could not create issue. Enable Issues under Settings -> General -> Features if desired. The triage report is recorded in the Step Summary."
+            else
+              echo "Created a new rolling issue"
+            fi
           fi
